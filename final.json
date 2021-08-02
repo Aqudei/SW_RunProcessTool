@@ -1,0 +1,170 @@
+{
+    "id": 1020,
+    "name": "BAD IMPORT",
+    "scheduleItemType": "Folder",
+    "order": 5,
+    "lastRun": "2021-07-31T17:06:24.483Z",
+    "lastRunStatus": "Error",
+    "activation": "Enabled",
+    "nextRun": "2021-07-31T17:30:00.0003804Z",
+    "scheduledTime": {
+        "id": 3,
+        "scheduleItemId": 1020,
+        "minute": 30,
+        "hour": 17,
+        "dayOfMonth": -1,
+        "month": -1,
+        "dayOfWeek": -1,
+        "nextRunTime": "2021-07-31T17:30:00.0003804Z"
+    },
+    "childScheduleItems": [
+        {
+            "id": 1021,
+            "name": "Bad Import",
+            "scheduleItemType": "Import",
+            "order": 1,
+            "lastRun": "2021-07-31T17:06:23.277Z",
+            "lastRunStatus": "Error",
+            "activation": "Enabled",
+            "nextRun": "0001-01-01T00:00:00",
+            "parent": 1020,
+            "childScheduleItems": [],
+            "settings": {
+                "schedulerSettingsId": 0,
+                "scheduleItemId": 1021,
+                "emailOnFailure": false,
+                "emailOnSuccess": false,
+                "stopOnFailure": false,
+                "stopToolOnTimeout": false,
+                "isGlobal": true,
+                "overrideChildSettings": false,
+                "successEmails": [],
+                "failEmails": [],
+                "externalToolTimeout": 0,
+                "enableRetries": false,
+                "version": {
+                    "rowVersion": 90182
+                }
+            },
+            "version": {
+                "rowVersion": 820549
+            }
+        },
+        {
+            "id": 1025,
+            "name": "Account_",
+            "scheduleItemType": "ClearTable",
+            "order": 2,
+            "lastRun": "2021-07-31T17:06:23.607Z",
+            "lastRunStatus": "Success",
+            "activation": "Enabled",
+            "nextRun": "0001-01-01T00:00:00",
+            "parent": 1020,
+            "childScheduleItems": [],
+            "settings": {
+                "schedulerSettingsId": 0,
+                "scheduleItemId": 1025,
+                "emailOnFailure": false,
+                "emailOnSuccess": false,
+                "stopOnFailure": false,
+                "stopToolOnTimeout": false,
+                "isGlobal": true,
+                "overrideChildSettings": false,
+                "successEmails": [],
+                "failEmails": [],
+                "externalToolTimeout": 0,
+                "enableRetries": false,
+                "version": {
+                    "rowVersion": 90182
+                }
+            },
+            "version": {
+                "rowVersion": 820550
+            }
+        },
+        {
+            "id": 1027,
+            "name": "dtTransactions data.xlsx",
+            "scheduleItemType": "Import",
+            "order": 0,
+            "lastRun": "2021-07-31T17:06:22.69Z",
+            "lastRunStatus": "Success",
+            "activation": "Enabled",
+            "nextRun": "0001-01-01T00:00:00",
+            "parent": 1020,
+            "childScheduleItems": [],
+            "settings": {
+                "schedulerSettingsId": 0,
+                "scheduleItemId": 1027,
+                "emailOnFailure": false,
+                "emailOnSuccess": false,
+                "stopOnFailure": false,
+                "stopToolOnTimeout": false,
+                "isGlobal": true,
+                "overrideChildSettings": false,
+                "successEmails": [],
+                "failEmails": [],
+                "externalToolTimeout": 0,
+                "enableRetries": false,
+                "version": {
+                    "rowVersion": 90182
+                }
+            },
+            "version": {
+                "rowVersion": 820548
+            }
+        },
+        {
+            "id": 1028,
+            "name": "Account Import Test",
+            "scheduleItemType": "Import",
+            "order": 3,
+            "lastRun": "2021-07-31T17:06:24.467Z",
+            "lastRunStatus": "Success",
+            "activation": "Enabled",
+            "nextRun": "0001-01-01T00:00:00",
+            "parent": 1020,
+            "childScheduleItems": [],
+            "settings": {
+                "schedulerSettingsId": 0,
+                "scheduleItemId": 1028,
+                "emailOnFailure": false,
+                "emailOnSuccess": false,
+                "stopOnFailure": false,
+                "stopToolOnTimeout": false,
+                "isGlobal": true,
+                "overrideChildSettings": false,
+                "successEmails": [],
+                "failEmails": [],
+                "externalToolTimeout": 0,
+                "enableRetries": false,
+                "version": {
+                    "rowVersion": 90182
+                }
+            },
+            "version": {
+                "rowVersion": 820551
+            }
+        }
+    ],
+    "settings": {
+        "schedulerSettingsId": 0,
+        "scheduleItemId": 1020,
+        "emailOnFailure": false,
+        "emailOnSuccess": false,
+        "stopOnFailure": false,
+        "stopToolOnTimeout": false,
+        "isGlobal": true,
+        "overrideChildSettings": false,
+        "successEmails": [],
+        "failEmails": [],
+        "externalToolTimeout": 0,
+        "enableRetries": false,
+        "version": {
+            "rowVersion": 90182
+        }
+    },
+    "version": {
+        "rowVersion": 820552
+    }
+}

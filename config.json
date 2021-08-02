@@ -1,0 +1,11 @@
+{
+    "logfile": "./logs/app.log",
+    "api_headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer XYZ",
+        "Model": "XYZ"
+    },
+    "base_url": "https://abc.xyz.com/api/v1/",
+    "base_urlv2": "https://abc.xyz.com/api/v2/",
+    "waiting_minutes" : 3
+}
