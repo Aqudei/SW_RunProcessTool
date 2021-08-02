@@ -8,5 +8,6 @@
     "base_url": "https://abc.xyz.com/api/v1/",
     "base_urlv2": "https://abc.xyz.com/api/v2/",
     "wait_time_global_action": 3,
-    "wait_time_trigger_file": 3
+    "wait_time_trigger_file": 3,
+    "sleep_seconds" : 5
 }

@@ -8,7 +8,7 @@ import json
 import argparse
 from pprint import pprint
 from datetime import datetime
-
+import time
 from requests.api import head
 
 logger = None
@@ -74,6 +74,7 @@ def check_global_running():
     """
     logger.info("Checking if Global Action is Running...")
     config = read_config()
+    sleep_time = config.get('sleep_seconds',5)
     wait_time = config['wait_time_global_action'] * 60
     headers = config['api_headers']
     url = config['base_url'] + 'globalactionstatus'
@@ -81,6 +82,8 @@ def check_global_running():
     loop_start = datetime.now()
 
     while (datetime.now() - loop_start).total_seconds() < wait_time:
+        time.sleep(sleep_time)
+
         response = requests.get(url, headers=headers)
         logger.debug(f"Request Url: <{url}>")
         logger.debug(f"Response Status Code: <{response.status_code}>")
@@ -129,7 +132,7 @@ def check_triggers(triggers):
         f"Checking if Trigger Files exists... Files: <{', '.join(triggers).strip()}>")
     config = read_config()
     base_url = config['base_url']
-
+    sleep_time = config.get('sleep_seconds',5)
     loop_seconds = config['wait_time_trigger_file'] * 60
 
     url = base_url + 'serverfilenames?filter=FileType%3DData%3BIsComplete%3Dtrue'
@@ -137,6 +140,8 @@ def check_triggers(triggers):
     headers = config['api_headers']
 
     while (datetime.now()-loop_start).total_seconds() < loop_seconds:
+        time.sleep(sleep_time)
+
         response = requests.get(url, headers=headers)
         logger.debug(f"Request Url: <{url}>")
         logger.debug(f"Response Status Code: <{response.status_code}>")
@@ -184,7 +189,7 @@ def execute_scheduled_process(process_id):
     config = read_config()
     headers = config['api_headers']
     wait_time = config['wait_time_global_action'] * 60
-
+    sleep_time = config.get('sleep_seconds',5)
     url = config['base_url'] + f'rpc/scheduleitem/{process_id}/run'
     response = requests.post(url=url, headers=headers)
     logger.debug(f"Request Url: <{url}>")
@@ -200,7 +205,10 @@ def execute_scheduled_process(process_id):
     logger.info("Waiting for process completion...")
     loop_start = datetime.now()
     status_code = 0
+
     while (datetime.now()-loop_start).total_seconds() < wait_time and not status_code == 404:
+        time.sleep(sleep_time)
+        
         url = config['base_url'] + f'liveactivities/{instance_id}'
         response = requests.get(url=url, headers=headers)
         logger.debug(f"Request Url: <{url}>")
@@ -281,6 +289,10 @@ def final_check(process_id):
         logger.debug(message)
 
 if __name__ == "__main__":
+    logger.info("***")
+    logger.info("***")
+    logger.info("***")
+    logger.info("*** Started process to Execute Scheduler Tasks’")
 
     os.makedirs('./logs', exist_ok=True)
 
@@ -303,7 +315,7 @@ if __name__ == "__main__":
         exit(1)
 
     success = execute_scheduled_process(process_id)
-    if success:
+    if success and options.check_triggers:
         delete_triggers(options.check_triggers)
 
     final_check(process_id)
