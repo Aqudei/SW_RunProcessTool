@@ -74,7 +74,7 @@ def check_global_running():
     """
     logger.info("Checking if Global Action is Running...")
     config = read_config()
-    sleep_time = config.get('sleep_seconds',5)
+    sleep_time = config.get('sleep_seconds', 5)
     wait_time = config['wait_time_global_action'] * 60
     headers = config['api_headers']
     url = config['base_url'] + 'globalactionstatus'
@@ -127,12 +127,12 @@ def check_triggers(triggers):
     """
     docstring
     """
-    found = 0
-    logger.info(
-        f"Checking if Trigger Files exists... Files: <{', '.join(triggers).strip()}>")
+    logger.debug(
+        f"Checking if {len(triggers)} <Trigger Files> exists... Files: <{', '.join(triggers).strip()}>")
+    found = set()
     config = read_config()
     base_url = config['base_url']
-    sleep_time = config.get('sleep_seconds',5)
+    sleep_time = config.get('sleep_seconds', 5)
     loop_seconds = config['wait_time_trigger_file'] * 60
 
     url = base_url + 'serverfilenames?filter=FileType%3DData%3BIsComplete%3Dtrue'
@@ -147,18 +147,19 @@ def check_triggers(triggers):
         logger.debug(f"Response Status Code: <{response.status_code}>")
 
         if response.status_code != 200:
-            logger.error(f"Response Status Text: <{response.text}>")
+            logger.error(f"Error on Check Trigger Files with Response Text: <{response.text}>")
             break
 
         response_json = response.json()
         for item in triggers:
             if item in response_json:
-                found = found + 1
+                logger.debug(f"Found Trigger File: {item}")
+                found.add(item)
 
-        if found == len(triggers):
+        if len(found) == len(triggers):
             break
 
-    return found == len(triggers)
+    return len(found) == len(triggers)
 
 
 def check_if_running(activity_id):
@@ -189,7 +190,7 @@ def execute_scheduled_process(process_id):
     config = read_config()
     headers = config['api_headers']
     wait_time = config['wait_time_global_action'] * 60
-    sleep_time = config.get('sleep_seconds',5)
+    sleep_time = config.get('sleep_seconds', 5)
     url = config['base_url'] + f'rpc/scheduleitem/{process_id}/run'
     response = requests.post(url=url, headers=headers)
     logger.debug(f"Request Url: <{url}>")
@@ -197,7 +198,8 @@ def execute_scheduled_process(process_id):
 
     response_json = response.json()
     if not response_json.get('liveactivities'):
-        raise Exception(f"Failed to run process with id:<{process_id}>")
+        logger.error(f"Failed to run process with id:<{process_id}>")
+        return False
 
     instance_id = response_json['liveactivities'].split("/")[-1]
     logger.info(f"Process ran with instance_id:<{instance_id}>")
@@ -208,7 +210,7 @@ def execute_scheduled_process(process_id):
 
     while (datetime.now()-loop_start).total_seconds() < wait_time and not status_code == 404:
         time.sleep(sleep_time)
-        
+
         url = config['base_url'] + f'liveactivities/{instance_id}'
         response = requests.get(url=url, headers=headers)
         logger.debug(f"Request Url: <{url}>")
@@ -278,7 +280,7 @@ def final_check(process_id):
     logger.debug(f"Response Status Code: <{response.status_code}>")
     if not response.status_code == 200:
         logger.error(response.text)
-        return
+        return False
 
     response_json = response.json()
     message1 = f"LastRun:{response_json.get('lastRun')}, LastRunStatus:{response_json.get('lastRunStatus')}"
@@ -287,6 +289,9 @@ def final_check(process_id):
     for child in response_json.get('childScheduleItems'):
         message = f"Name:{child['name']}, ScheduledItemType:{child['scheduleItemType']}, LastRun:{child['lastRun']}, LastRunStatus:{child['lastRunStatus']}"
         logger.debug(message)
+
+    return response_json.get('lastRunStatus') and not response_json.get('lastRunStatus').lower() == 'error'
+
 
 if __name__ == "__main__":
     logger.info("***")
@@ -315,8 +320,10 @@ if __name__ == "__main__":
         exit(1)
 
     success = execute_scheduled_process(process_id)
+    if success:
+        success = final_check(process_id)
+    
     if success and options.check_triggers:
         delete_triggers(options.check_triggers)
 
-    final_check(process_id)
     exit(0 if success else 1)
