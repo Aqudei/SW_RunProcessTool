@@ -147,7 +147,8 @@ def check_triggers(triggers):
         logger.debug(f"Response Status Code: <{response.status_code}>")
 
         if response.status_code != 200:
-            logger.error(f"Error on Check Trigger Files with Response Text: <{response.text}>")
+            logger.error(
+                f"Error on Check Trigger Files with Response Text: <{response.text}>")
             break
 
         response_json = response.json()
@@ -236,10 +237,8 @@ def delete_triggers(triggers):
             logger.warn(f"Failed to delete trigger file: {trigger}")
 
         logger.info(f"Trigger file deleted! <{trigger}>")
-
+        
 # retrieve arguments from commandline giver by user
-
-
 def retrieve_arguments():
     """
     docstring
@@ -322,7 +321,7 @@ if __name__ == "__main__":
     success = execute_scheduled_process(process_id)
     if success:
         success = final_check(process_id)
-    
+
     if success and options.check_triggers:
         delete_triggers(options.check_triggers)
 
