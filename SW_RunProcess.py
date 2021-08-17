@@ -104,23 +104,27 @@ def get_process(process_name):
     """
     docstring
     """
-    logger.info(f"Fetching <process id> of <{process_name}>...")
-    config = read_config()
-    headers = config['api_headers']
-    base_url = config['base_url']
-    url = base_url + 'scheduleitem/'
-    response = requests.get(url=url, headers=headers)
-    logger.info(f"Request Url: <{url}>")
-    logger.info(f"Response Status Code: <{response.status_code}>")
-    if response.status_code != 200:
-        logger.error(f"Response Status Text: <{response.text}>")
-        return
+    try:
+        logger.info(f"Fetching <process id> of <{process_name}>...")
+        config = read_config()
+        headers = config['api_headers']
+        base_url = config['base_url']
+        url = base_url + 'scheduleitem/'
+        response = requests.get(url=url, headers=headers)
+        logger.info(f"Request Url: <{url}>")
+        logger.info(f"Response Status Code: <{response.status_code}>")
+        if response.status_code != 200:
+            logger.error(f"Response Status Text: <{response.text}>")
+            return
 
-    response_json = response.json()
+        response_json = response.json()
 
-    lookup = dict({item['name'].upper(): item for item in response_json})
-    process = lookup.get(process_name.upper())
-    return process
+        lookup = dict({item['name'].upper(): item for item in response_json})
+        process = lookup.get(process_name.upper())
+        return process
+
+    except Exception as e:
+        logger.exception(e)
 
 
 def check_triggers(triggers):
