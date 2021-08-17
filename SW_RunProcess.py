@@ -14,7 +14,7 @@ from requests.api import head
 logger = None
 
 USAGE = 'Command Usage: python omid.py --sched-procname <scheduler process name> --check-triggers <list of trigger files>\nor\npython omid.py --sched-procname <scheduler process name>'
-
+CONFIG_FILE = './SW_RunProcessConfig.json'
 # Subclass Builtin ArgumentParser so we can print error to console
 
 
@@ -30,7 +30,7 @@ class MyArgumentParser(argparse.ArgumentParser):
 
 # Parse Config from ./config.json file
 def read_config():
-    with open('./config.json') as fp:
+    with open(CONFIG_FILE) as fp:
         return json.loads(fp.read())
 
 # Logger setup. Add Streamhandler and FileHandler
@@ -92,7 +92,7 @@ def check_global_running():
             logger.error(f"Response Status Text: <{response.text}>")
             raise Exception("Unable to check global action status")
 
-        if 'True' in response.text:
+        if 'true' in response.text.lower():
             continue
 
         return False
@@ -100,7 +100,7 @@ def check_global_running():
     return True
 
 
-def get_process_id(process_name):
+def get_process(process_name):
     """
     docstring
     """
@@ -110,17 +110,17 @@ def get_process_id(process_name):
     base_url = config['base_url']
     url = base_url + 'scheduleitem/'
     response = requests.get(url=url, headers=headers)
-    logger.debug(f"Request Url: <{url}>")
-    logger.debug(f"Response Status Code: <{response.status_code}>")
-    logger.info(f"Status Code: {response.status_code}")
+    logger.info(f"Request Url: <{url}>")
+    logger.info(f"Response Status Code: <{response.status_code}>")
     if response.status_code != 200:
-        logger.debug(f"Response Status Text: <{response.text}>")
+        logger.error(f"Response Status Text: <{response.text}>")
         return
 
     response_json = response.json()
 
-    lookup = dict({item['name'].upper(): item['id'] for item in response_json})
-    return lookup.get(process_name.upper())
+    lookup = dict({item['name'].upper(): item for item in response_json})
+    process = lookup.get(process_name.upper())
+    return process
 
 
 def check_triggers(triggers):
@@ -190,7 +190,7 @@ def execute_scheduled_process(process_id):
     logger.info(f"Executing scheduled process <{process_id}>")
     config = read_config()
     headers = config['api_headers']
-    wait_time = config['wait_time_global_action'] * 60
+    wait_time = config['wait_time_process_execution'] * 60
     sleep_time = config.get('sleep_seconds', 5)
     url = config['base_url'] + f'rpc/scheduleitem/{process_id}/run'
     response = requests.post(url=url, headers=headers)
@@ -210,13 +210,12 @@ def execute_scheduled_process(process_id):
     status_code = 0
 
     while (datetime.now()-loop_start).total_seconds() < wait_time and not status_code == 404:
-        time.sleep(sleep_time)
-
         url = config['base_url'] + f'liveactivities/{instance_id}'
         response = requests.get(url=url, headers=headers)
         logger.debug(f"Request Url: <{url}>")
         logger.debug(f"Response Status Code: <{response.status_code}>")
         status_code = response.status_code
+        time.sleep(sleep_time)
 
     return status_code == 404
 
@@ -237,8 +236,10 @@ def delete_triggers(triggers):
             logger.warn(f"Failed to delete trigger file: {trigger}")
 
         logger.info(f"Trigger file deleted! <{trigger}>")
-        
+
 # retrieve arguments from commandline giver by user
+
+
 def retrieve_arguments():
     """
     docstring
@@ -286,6 +287,9 @@ def final_check(process_id):
     logger.debug(message1)
 
     for child in response_json.get('childScheduleItems'):
+        if child.get('activation', 'activation').lower() != 'enabled':
+            continue
+
         message = f"Name:{child['name']}, ScheduledItemType:{child['scheduleItemType']}, LastRun:{child['lastRun']}, LastRunStatus:{child['lastRunStatus']}"
         logger.debug(message)
 
@@ -303,19 +307,25 @@ if __name__ == "__main__":
     options = retrieve_arguments()
     validate_options(options)
 
-    process_id = get_process_id(options.sched_procname)
-    if not process_id:
+    process = get_process(options.sched_procname)
+    if not process:
         logger.error(
-            f"Process Id cannot be found for Process Name: {options.sched_procname}!")
+            f"Process Terminated. Process: <{options.sched_procname}> cannot be found !")
+        exit(1)
+
+    process_id = process['id']
+    if process.get('activation', 'activation').lower() != 'enabled':
+        logger.error(
+            f"Process Terminated. Process: <{options.sched_procname}> is disabled!")
         exit(1)
 
     if options.check_triggers:
         if not check_triggers(options.check_triggers):
-            logger.error("Trigger Files Not Found!")
+            logger.error("Process Terminated. Trigger Files Not Found!")
             exit(1)
 
     if check_global_running():
-        logger.error("Global Action ongoing!")
+        logger.error("Process Terminated. Global Action ongoing!")
         exit(1)
 
     success = execute_scheduled_process(process_id)
